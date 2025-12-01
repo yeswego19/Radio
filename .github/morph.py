@@ -2,35 +2,38 @@ import cv2
 import numpy as np
 import random
 import os
+from datetime import datetime
 
-# Ищем все jpg/png в корне репозитория
+# Ищем все jpg/png в корне
 image_files = [f for f in os.listdir('.') if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
 if len(image_files) < 2:
-    print("Ошибка: нужно хотя бы 2 фото в корне")
+    print("Ошибка: меньше 2 фото")
     exit()
 
 images = []
 for f in image_files:
     img = cv2.imread(f)
     if img is not None:
-        img = cv2.resize(img, (640, 640))
+        img = cv2.resize(img, (1280, 720))
         images.append(img)
 
-print(f"Загружено {len(images)} фото")
+print(f"Найдено и загружено {len(images)} фото")
 
-while True:
+# Создаём 30-секундное видео (600 кадров, 20 fps)
+fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+out = cv2.VideoWriter('output.mp4', fourcc, 20.0, (1280, 720))
+
+for _ in range(600):
     i1 = random.randint(0, len(images)-1)
     i2 = random.randint(0, len(images)-1)
     while i2 == i1:
         i2 = random.randint(0, len(images)-1)
 
-    img1 = images[i1]
-    img2 = images[i2]
+    for step in range(20):
+        alpha = step / 19.0
+        frame = cv2.addWeighted(images[i1], 1-alpha, images[i2], alpha, 0)
+        cv2.putText(frame, "Art Radio • Live", (50, 100), cv2.FONT_HERSHEY_DUPLEX, 3, (255,255,255), 5)
+        out.write(frame)
 
-    for step in range(50):
-        alpha = step / 49.0
-        morph = cv2.addWeighted(img1, 1-alpha, img2, alpha, 0)
-        cv2.putText(morph, "Art Radio", (30, 70), cv2.FONT_HERSHEY_SIMPLEX, 2, (255,255,255), 4)
-        cv2.imshow("Morph", morph)
-        if cv2.waitKey(100) == 27:  # Esc
-            exit()
+out.release()
+print("Видео output.mp4 успешно создано")
