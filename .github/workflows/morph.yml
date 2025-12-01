@@ -25,7 +25,7 @@ jobs:
       - name: Generate video
         run: python morph.py
 
-      - name: Upload video as artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: art-radio-video
